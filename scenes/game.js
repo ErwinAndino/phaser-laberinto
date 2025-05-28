@@ -42,7 +42,8 @@ export default class Game extends Phaser.Scene {
     this.player = this.physics.add.sprite(spawnPoint.x, spawnPoint.y, "dude");
 
     this.player.setBounce(0.2);
-    this.player.setCollideWorldBounds(true);
+    this.player.setCollideWorldBounds(false);
+    this.player.setScale(0.8)
 
     this.anims.create({
       key: "left",
@@ -70,6 +71,47 @@ export default class Game extends Phaser.Scene {
     platformLayer.setCollisionByProperty({ esColisionable: true });
     this.physics.add.collider(this.player, platformLayer);
 
+
+
+        objectsLayer.objects.forEach((objData) => {
+      console.log(objData);
+      const { x = 0, y = 0, name, type } = objData;
+      switch (name) {
+        case "puerta": {
+          // add star to scene
+          // console.log("estrella agregada: ", x, y);
+          
+          this.puerta = this.physics.add.image(x, y, "star").setScale(1.2).setTint(0xff0000);
+
+          break;
+        }
+      }
+    });
+
+            objectsLayer.objects.forEach((objData) => {
+      console.log(objData);
+      const { x = 0, y = 0, name, type } = objData;
+      switch (name) {
+        case "final": {
+          // add star to scene
+          // console.log("estrella agregada: ", x, y);
+          
+          this.final = this.physics.add.image(x, y, "star").setScale(1.2).setTint(0x000000);
+
+          break;
+        }
+      }
+    });
+
+    this.physics.add.collider(this.player, this.puerta);
+   
+        this.physics.add.overlap(
+      this.player,
+      this.final,
+      this.finish,
+      null,
+      this
+    );
     // tiles marked as colliding
     /*
     const debugGraphics = this.add.graphics().setAlpha(0.75);
@@ -114,16 +156,18 @@ export default class Game extends Phaser.Scene {
       fontSize: "32px",
       fill: "#000",
     });
+    this.cameras.main.startFollow(this.player)
+    this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels)
   }
 
   update() {
     // update game objects
     if (this.cursors.left.isDown) {
-      this.player.setVelocityX(-160);
+      this.player.setVelocityX(-300);
 
       this.player.anims.play("left", true);
     } else if (this.cursors.right.isDown) {
-      this.player.setVelocityX(160);
+      this.player.setVelocityX(300);
 
       this.player.anims.play("right", true);
     } else {
@@ -133,13 +177,28 @@ export default class Game extends Phaser.Scene {
     }
 
     if (this.cursors.up.isDown) {
-      this.player.setVelocityY(-330);
+      this.player.setVelocityY(-300);
+  
+    } else if (this.cursors.down.isDown) {
+      this.player.setVelocityY(300);
+   
+    } else {
+      this.player.setVelocityY(0);
+
+
     }
 
     if (Phaser.Input.Keyboard.JustDown(this.keyR)) {
       console.log("Phaser.Input.Keyboard.JustDown(this.keyR)");
       this.scene.restart();
     }
+
+    
+      if (this.stars.countActive(true) === 0) {
+      //  A new batch of stars to collect
+    this.puerta.disableBody(true, true);
+    }
+  
   }
 
   collectStar(player, star) {
@@ -148,11 +207,13 @@ export default class Game extends Phaser.Scene {
     this.score += 10;
     this.scoreText.setText(`Score: ${this.score}`);
 
-    if (this.stars.countActive(true) === 0) {
-      //  A new batch of stars to collect
-      this.stars.children.iterate(function (child) {
-        child.enableBody(true, child.x, 0, true, true);
-      });
-    }
+  }
+
+  finish(player, final) {
+    final.disableBody(true, true);
+    this.gameovertext = this.add.text(this.cameras.main.worldView.centerX, this.cameras.main.worldView.centerY, `YOU WIN Score: ${this.score}`, {
+      fontSize: "100px",
+      fill: "#fff",
+    });
   }
 }
