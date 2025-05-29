@@ -1,20 +1,21 @@
 import game from "./scenes/game.js";
+import nivel1 from "./scenes/nivel1.js";
 
 // Create a new Phaser config object
 const config = {
   type: Phaser.AUTO,
-  width: 800,
-  height: 600,
+  width: 450,
+  height: 450,
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
     min: {
-      width: 800,
-      height: 600,
+      width: 450,
+      height: 450,
     },
     max: {
-      width: 1600,
-      height: 1200,
+      width: 900,
+      height: 900,
     },
   },
   physics: {
@@ -27,7 +28,7 @@ const config = {
   // List of scenes to load
   // Only the first scene will be shown
   // Remember to import the scene before adding it to the list
-  scene: [game],
+  scene: [nivel1, game],
 };
 
 // Create a new Phaser game instance

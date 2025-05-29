@@ -1,16 +1,17 @@
 // URL to explain PHASER scene: https://rexrainbow.github.io/phaser3-rex-notes/docs/site/scene/
 
-export default class Game extends Phaser.Scene {
+export default class nivel1 extends Phaser.Scene {
   constructor() {
-    super("game");
+    super("nivel1");
   }
 
   init(data) {
     this.score = 0;
+    this.topscore = data.topscore || 0;
   }
 
   preload() {
-    this.load.tilemapTiledJSON("map", "public/assets/tilemap/map.json");
+    this.load.tilemapTiledJSON("map2", "public/assets/tilemap/map2.json");
     this.load.image("tileset", "public/assets/tiles.png");
     this.load.image("background", "public/assets/backgrounds.png");
     this.load.image("star", "public/assets/star.png");
@@ -24,7 +25,7 @@ export default class Game extends Phaser.Scene {
   }
 
   create() {
-    const map = this.make.tilemap({ key: "map" });
+    const map = this.make.tilemap({ key: "map2" });
 
     // Parameters are the name you gave the tileset in Tiled and then the key of the tileset image in
     // Phaser's cache (i.e. the name you used in preload)
@@ -96,6 +97,7 @@ export default class Game extends Phaser.Scene {
       }
     });
 
+    this.starsCollected = 0;
        this.puertaText = this.add
       .text(
         this.cameras.main.worldView.centerX,
@@ -257,15 +259,31 @@ export default class Game extends Phaser.Scene {
       this.cameras.main.worldView.y + 16
     );
 
-    
+
   }
 
   collectStar(player, star) {
     star.disableBody(true, true);
 
     this.score += 10;
+    this.starsCollected++;
     this.scoreText.setText(`Score: ${this.score}`);
+    star.total++;
 
+    // Si quieres activar algo al llegar a 5 estrellas:
+  if (this.starsCollected === 5) {
+    console.log("¡Has recogido 5 estrellas!");
+    this.puerta.children.iterate((puerta) => {
+      puerta.disableBody(true, true);
+      puerta.setTint(0x00ff00); // Cambia el color para indicar que está desbloqueada
+    });
+    // Aquí puedes activar lo que quieras, por ejemplo:
+    // this.activarPuertaEspecial();
+     this.puertaText.setVisible(true);
+  this.time.delayedCall(2000, () => {
+    this.puertaText.setVisible(false);
+  });
+  }
   }
 
   desbloquearPuerta(player, llave) {
@@ -310,8 +328,7 @@ console.log(`el nombre de la llave es ${llave.name}`);
     this.time.delayedCall(2000, () => {
       this.scene.start("game", {
         totalscore: this.score,
-        gameover: 1, // 1 for victory
-        topscore: this.score, // Assuming you want to set the top score to the current score
+        topscore: this.topscore, // Assuming you want to set the top score to the current score
       });
     });
   };
