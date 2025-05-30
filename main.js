@@ -1,5 +1,6 @@
 import game from "./scenes/game.js";
 import nivel1 from "./scenes/nivel1.js";
+import nivel2 from "./scenes/nivel2.js";
 
 // Create a new Phaser config object
 const config = {
@@ -22,13 +23,13 @@ const config = {
     default: "arcade",
     arcade: {
       gravity: { y: 0 },
-      debug: true,
+      debug: false,
     },
   },
   // List of scenes to load
   // Only the first scene will be shown
   // Remember to import the scene before adding it to the list
-  scene: [nivel1, game],
+  scene: [nivel1, nivel2, game],
 };
 
 // Create a new Phaser game instance

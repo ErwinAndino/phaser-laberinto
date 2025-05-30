@@ -1,8 +1,8 @@
 // URL to explain PHASER scene: https://rexrainbow.github.io/phaser3-rex-notes/docs/site/scene/
 
-export default class Game extends Phaser.Scene {
+export default class nivel2 extends Phaser.Scene {
   constructor() {
-    super("game");
+    super("nivel2");
   }
 
   init(data) {
@@ -11,13 +11,12 @@ export default class Game extends Phaser.Scene {
   }
 
   preload() {
-    this.load.tilemapTiledJSON("map", "public/assets/tilemap/map.json");
+    this.load.tilemapTiledJSON("map3", "public/assets/tilemap/map3.json");
     this.load.image("tileset", "public/assets/tiles.png");
     this.load.image("background", "public/assets/backgrounds.png");
     this.load.image("star", "public/assets/star.png");
     this.load.image("puerta", "public/assets/puerta.png");
     this.load.image("llave", "public/assets/llave.png");
-    this.load.image("particle", "./public/assets/particle.png");
 
     this.load.spritesheet("dude", "./public/assets/dude.png", {
       frameWidth: 32,
@@ -26,9 +25,7 @@ export default class Game extends Phaser.Scene {
   }
 
   create() {
-    const map = this.make.tilemap({ key: "map" });
-
-    this.particles = this.add.particles("particle");
+    const map = this.make.tilemap({ key: "map3" });
 
     // Parameters are the name you gave the tileset in Tiled and then the key of the tileset image in
     // Phaser's cache (i.e. the name you used in preload)
@@ -100,6 +97,7 @@ export default class Game extends Phaser.Scene {
       }
     });
 
+    this.starsCollected = 0;
        this.puertaText = this.add
       .text(
         this.cameras.main.worldView.centerX,
@@ -110,7 +108,6 @@ export default class Game extends Phaser.Scene {
           fill: "#f2eb09",
           stroke: "#000",
           strokeThickness: 4,
-          
         }
       )
       .setOrigin(0.5, 0.5)
@@ -134,7 +131,6 @@ export default class Game extends Phaser.Scene {
       }
     });
 
-    
             objectsLayer.objects.forEach((objData) => {
       console.log(objData);
       const { x = 0, y = 0, name, type } = objData;
@@ -152,7 +148,7 @@ export default class Game extends Phaser.Scene {
 
     this.physics.add.collider(this.player, this.puerta);
    
-        this.physics.add.overlap(
+        this.physics.add.collider(
       this.player,
       this.final,
       this.finish,
@@ -207,22 +203,21 @@ export default class Game extends Phaser.Scene {
     // add overlap between stars and platform layer
     this.physics.add.collider(this.stars, platformLayer);
 
-this.scoreText = this.add.text(225, 8, `Score:  ${this.score}`, {
+    this.scoreText = this.add.text(225, 8, `Score:  ${this.score}`, {
       font: "16px Arial",
-            fill: "#fff",
+        fill: "#fff",
       stroke: "#000",
       strokeThickness: 2,
     }).setOrigin(0.5, 0.5);
     this.cameras.main.startFollow(this.player)
     this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels)
-    
 
         // Función para emitir partículas de estrellas 
 
 
       this.stars.children.iterate((star) => {
 
-      
+       
        const emitter = this.add.particles(0, 0, 'particle', {
           speedX: { min: -1, max: 1 },
           speedY: { min: -1, max: 1 },
@@ -239,7 +234,7 @@ this.scoreText = this.add.text(225, 8, `Score:  ${this.score}`, {
             type: "random",
           },
         });
-       star.emitter = emitter; // Guardar el emisor en la estrella para poder detenerlo más tarde
+       star.emitter = emitter;
       });
 
 
@@ -248,7 +243,7 @@ this.scoreText = this.add.text(225, 8, `Score:  ${this.score}`, {
 
       this.llave.children.iterate((llave) => {
 
-      
+       
        const emitter = this.add.particles(0, 0, 'particle', {
           speedX: { min: -1, max: 1 },
           speedY: { min: -1, max: 1 },
@@ -265,8 +260,9 @@ this.scoreText = this.add.text(225, 8, `Score:  ${this.score}`, {
             type: "random",
           },
         });
-       llave.emitter = emitter; // Guardar el emisor en la llave para poder detenerlo más tarde
+       llave.emitter = emitter;
       });
+
   }
 
   update() {
@@ -310,24 +306,27 @@ this.scoreText = this.add.text(225, 8, `Score:  ${this.score}`, {
     
 
   
-          this.scoreText.setOrigin(0.5, 0.5).setPosition(
+     this.scoreText.setOrigin(0.5, 0.5).setPosition(
       this.cameras.main.midPoint.x,
       this.cameras.main.worldView.y + 8
     );
-    
+
+
   }
 
   collectStar(player, star) {
     star.disableBody(true, true);
-    star.emitter.stop(); // Detener el emisor de partículas de la estrella
-    this.score += 10;
-    this.scoreText.setText(`Score: ${this.score}`);
+    star.emitter.stop(); // Detener y destruir el emisor de partículas
 
+    this.score += 10;
+    this.starsCollected++;
+    this.scoreText.setText(`Score:  ${this.score}`);
+    star.total++;
   }
 
   desbloquearPuerta(player, llave) {
     llave.disableBody(true, true);
-    llave.emitter.stop(); // Detener el emisor de partículas de la llave
+    llave.emitter.stop(); // Detener y destruir el emisor de partículas
 console.log(`el nombre de la llave es ${llave.name}`);
     
 
@@ -352,9 +351,10 @@ console.log(`el nombre de la llave es ${llave.name}`);
   finish(player, final) {
     final.disableBody(true, true);
 
-         if (this.score > this.topscore) {
+     if (this.score > this.topscore) {
       this.topscore = this.score; // Update the top score if the current score is higher
     }
+    
 
      this.add
       .text(
@@ -364,7 +364,7 @@ console.log(`el nombre de la llave es ${llave.name}`);
         {
           font: "64px Arial",
           fill: "#fff",
-      stroke: "#000",
+                stroke: "#000",
       strokeThickness: 4,
         }
       )
@@ -385,14 +385,13 @@ console.log(`el nombre de la llave es ${llave.name}`);
       .setOrigin(0.5, 0.5);
 
     this.player.setTint(0x00ff00); // Cambiar el color del jugador para indicar victoria
-     this.player.body.enable = false;
+ this.player.body.enable = false;
   this.player.setVelocity(0, 0);
   
     this.time.delayedCall(2000, () => {
-      this.scene.start("nivel1", {
+      this.scene.start("game", {
         score: this.score,
-        gameover: 1, // 1 for victory
-        topscore: this.score, // Assuming you want to set the top score to the current score
+        topscore: this.topscore, // Assuming you want to set the top score to the current score
       });
     });
   };

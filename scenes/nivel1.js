@@ -6,7 +6,7 @@ export default class nivel1 extends Phaser.Scene {
   }
 
   init(data) {
-    this.score = 0;
+    this.score = data.score || 0;
     this.topscore = data.topscore || 0;
   }
 
@@ -17,6 +17,7 @@ export default class nivel1 extends Phaser.Scene {
     this.load.image("star", "public/assets/star.png");
     this.load.image("puerta", "public/assets/puerta.png");
     this.load.image("llave", "public/assets/llave.png");
+     this.load.image("particle", "./public/assets/particle.png");
 
     this.load.spritesheet("dude", "./public/assets/dude.png", {
       frameWidth: 32,
@@ -105,7 +106,9 @@ export default class nivel1 extends Phaser.Scene {
         "¡Puerta desbloqueada!",
         {
           font: "32px Arial",
-          fill: "#000",
+          fill: "#f2eb09",
+          stroke: "#000",
+          strokeThickness: 4,
           
         }
       )
@@ -202,13 +205,72 @@ export default class nivel1 extends Phaser.Scene {
     // add overlap between stars and platform layer
     this.physics.add.collider(this.stars, platformLayer);
 
-    this.scoreText = this.add.text(16, 16, `Score:  ${this.score}`, {
-      font: "32px Arial",
-      fill: "#000",
-    });
+    this.scoreText = this.add.text(225, 8, `Score:  ${this.score}`, {
+      font: "16px Arial",
+      fill: "#fff",
+      stroke: "#000",
+      strokeThickness: 2,
+    }).setOrigin(0.5, 0.5);
     this.cameras.main.startFollow(this.player)
     this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels)
+    this.cameras.main.setZoom(1);
+
+
+    // Función para emitir partículas de estrellas 
+
+
+      this.stars.children.iterate((star) => {
+
+       const emitter = this.add.particles(0, 0, 'particle', {
+          speedX: { min: -1, max: 1 },
+          speedY: { min: -1, max: 1 },
+          lifespan: 2000,
+          quantity: 1,
+          frequency: 500, // emite una partícula cada 500 ms
+          scale: { start: 1, end: 0 },
+          blendMode: 'ADD',
+          follow: star,
+          depth: 0,
+          tint: 0x05e8f7,
+          emitZone: {
+            source: new Phaser.Geom.Rectangle(-10, -10, 20, 20),
+            type: "random",
+          },
+        });
+       star.emitter = emitter; // Guardar el emisor en la estrella para poder destruirlo más tarde
+      });
+
+
+          // Función para emitir partículas de llaves
+
+
+      this.llave.children.iterate((llave) => {
+
+       const emitter = this.add.particles(0, 0, 'particle', {
+          speedX: { min: -1, max: 1 },
+          speedY: { min: -1, max: 1 },
+          lifespan: 2000,
+          quantity: 1,
+          frequency: 500, // emite una partícula cada 500 ms
+          scale: { start: 1, end: 0 },
+          blendMode: 'ADD',
+          follow: llave,
+          depth: 0,
+          tint: 0xf7f012,
+          emitZone: {
+            source: new Phaser.Geom.Rectangle(-10, -10, 20, 20),
+            type: "random",
+          },
+        });
+       llave.emitter = emitter;
+      });
+
+  
+
   }
+
+
+  
 
   update() {
     // update game objects
@@ -251,13 +313,11 @@ export default class nivel1 extends Phaser.Scene {
     
 
   
-     this.scoreText.setPosition(
-      this.cameras.main.worldView.x +
-        this.cameras.main.worldView.width -
-        16 -
-        this.scoreText.width,
-      this.cameras.main.worldView.y + 16
+     this.scoreText.setOrigin(0.5, 0.5).setPosition(
+      this.cameras.main.midPoint.x,
+      this.cameras.main.worldView.y + 8
     );
+
 
 
   }
@@ -265,9 +325,11 @@ export default class nivel1 extends Phaser.Scene {
   collectStar(player, star) {
     star.disableBody(true, true);
 
+    star.emitter.stop(); // Destruye el emisor de partículas de la estrella
+
     this.score += 10;
     this.starsCollected++;
-    this.scoreText.setText(`Score: ${this.score}`);
+    this.scoreText.setText(`Score:  ${this.score}`);
     star.total++;
 
     // Si quieres activar algo al llegar a 5 estrellas:
@@ -288,6 +350,7 @@ export default class nivel1 extends Phaser.Scene {
 
   desbloquearPuerta(player, llave) {
     llave.disableBody(true, true);
+    llave.emitter.stop(); // Destruye el emisor de partículas de la llave
 console.log(`el nombre de la llave es ${llave.name}`);
     
 
@@ -312,22 +375,46 @@ console.log(`el nombre de la llave es ${llave.name}`);
   finish(player, final) {
     final.disableBody(true, true);
 
+    if (this.score > this.topscore) {
+      this.topscore = this.score; // Update the top score if the current score is higher
+    }
+    
+
      this.add
       .text(
         this.cameras.main.worldView.centerX,
         this.cameras.main.worldView.centerY,
         "¡Victoria!",
         {
-          fontSize: "64px",
+          font: "64px Arial",
+                    fill: "#fff",
+      stroke: "#000",
+      strokeThickness: 4,
+        }
+      )
+      .setOrigin(0.5, 0.5); 
+
+       this.add
+      .text(
+        this.cameras.main.worldView.centerX,
+        this.cameras.main.worldView.centerY + 70,
+        `Score: ${this.score}\nTop Score: ${this.topscore}`,
+        {
+          font: "32px Arial",
           fill: "#fff",
+                stroke: "#000",
+      strokeThickness: 4,
         }
       )
       .setOrigin(0.5, 0.5);
 
     this.player.setTint(0x00ff00); // Cambiar el color del jugador para indicar victoria
+ this.player.body.enable = false;
+  this.player.setVelocity(0, 0);
+
     this.time.delayedCall(2000, () => {
-      this.scene.start("game", {
-        totalscore: this.score,
+      this.scene.start("nivel2", {
+        score: this.score,
         topscore: this.topscore, // Assuming you want to set the top score to the current score
       });
     });
