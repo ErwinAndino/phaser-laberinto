@@ -17,11 +17,17 @@ export default class nivel1 extends Phaser.Scene {
     this.load.image("star", "public/assets/star.png");
     this.load.image("puerta", "public/assets/puerta.png");
     this.load.image("llave", "public/assets/llave.png");
+    this.load.image("final", "public/assets/final.png");
      this.load.image("particle", "./public/assets/particle.png");
 
     this.load.spritesheet("dude", "./public/assets/dude.png", {
       frameWidth: 32,
       frameHeight: 48,
+    });
+
+        this.load.spritesheet("characters", "./public/assets/characters.png", {
+      frameWidth: 24,
+      frameHeight: 24,
     });
   }
 
@@ -47,31 +53,52 @@ export default class nivel1 extends Phaser.Scene {
     );
     console.log("spawnPoint", spawnPoint);
 
-    this.player = this.physics.add.sprite(spawnPoint.x, spawnPoint.y, "dude");
+    this.player = this.physics.add.sprite(spawnPoint.x, spawnPoint.y, "characters", 23);
 
     this.player.setBounce(0.2);
     this.player.setCollideWorldBounds(false);
-    this.player.setScale(0.3)
+    this.player.setScale(0.5, 0.5); // Adjust the scale of the player
 
+     
     this.anims.create({
       key: "left",
-      frames: this.anims.generateFrameNumbers("dude", { start: 0, end: 3 }),
+      frames: this.anims.generateFrameNumbers("characters", { start: 21, end: 22 }),
       frameRate: 10,
       repeat: -1,
     });
 
     this.anims.create({
-      key: "turn",
-      frames: [{ key: "dude", frame: 4 }],
+      key: "up",
+      frames: [{ key: "characters", frame: 23 }],
       frameRate: 20,
     });
 
     this.anims.create({
       key: "right",
-      frames: this.anims.generateFrameNumbers("dude", { start: 5, end: 8 }),
+      frames: this.anims.generateFrameNumbers("characters", { start: 21, end: 22 }),
       frameRate: 10,
       repeat: -1,
     });
+
+        this.anims.create({
+      key: "down",
+      frames: this.anims.generateFrameNumbers("characters", { start: 21, end: 22 }),
+      frameRate: 10,
+    });
+    // anims enemy
+     this.anims.create({
+      key: "Eleft",
+      frames: this.anims.generateFrameNumbers("characters", { start: 25, end: 26 }),
+      frameRate: 10,
+      repeat: -1,
+    });
+         this.anims.create({
+      key: "Eup",
+      frames: this.anims.generateFrameNumbers("characters", { start: 26, end: 24 }),
+      frameRate: 10,
+      repeat: -1,
+    });
+    
 
     this.cursors = this.input.keyboard.createCursorKeys();
     this.keyR = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
@@ -80,7 +107,41 @@ export default class nivel1 extends Phaser.Scene {
     this.physics.add.collider(this.player, platformLayer);
 
 
-        this.puerta = this.physics.add.staticGroup();
+         this.enemy = this.physics.add.group();
+
+    // find object layer
+    // if type is "stars", add to stars group
+    objectsLayer.objects.forEach((objData) => {
+      console.log(objData);
+      const { x = 0, y = 0, name, type } = objData;
+      switch (type) {
+        case "enemy": {
+          // add star to scene
+          // console.log("estrella agregada: ", x, y);
+          const enemy = this.enemy.create(x, y, "characters", 24);
+          enemy.name = name; // Set the name of the enemy for later use
+          enemy.setScale(0.5);
+          if (name === "1") {
+            enemy.setVelocityY(50); // Set initial velocity for enemy 1
+          } else if (name === "2") {
+            enemy.setVelocityX(50); // Set initial velocity for enemy 2
+          }
+          break;
+        }
+      }
+    });
+
+    this.physics.add.collider(this.enemy, platformLayer);
+
+     this.physics.add.overlap(
+      this.player,
+      this.enemy,
+      this.hitEnemy,
+      null,
+      this
+    );
+
+    this.puerta = this.physics.add.staticGroup();
 
     // find object layer
     // if type is "stars", add to stars group
@@ -141,7 +202,7 @@ export default class nivel1 extends Phaser.Scene {
           // add star to scene
           // console.log("estrella agregada: ", x, y);
           
-          this.final = this.physics.add.image(x, y, "star").setScale(1.2).setTint(0x000000);
+          this.final = this.physics.add.image(x, y, "final").setScale(1).setTint(0xf7f012);
 
           break;
         }
@@ -150,7 +211,7 @@ export default class nivel1 extends Phaser.Scene {
 
     this.physics.add.collider(this.player, this.puerta);
    
-        this.physics.add.collider(
+        this.physics.add.overlap(
       this.player,
       this.final,
       this.finish,
@@ -275,25 +336,28 @@ export default class nivel1 extends Phaser.Scene {
   update() {
     // update game objects
     if (this.cursors.left.isDown) {
-      this.player.setVelocityX(-300);
+      this.player.setVelocityX(-100);
 
       this.player.anims.play("left", true);
     } else if (this.cursors.right.isDown) {
-      this.player.setVelocityX(300);
+      this.player.setVelocityX(100);
 
       this.player.anims.play("right", true);
     } else {
       this.player.setVelocityX(0);
 
-      this.player.anims.play("turn");
+      this.player.anims.play("down");
     }
 
     if (this.cursors.up.isDown) {
-      this.player.setVelocityY(-300);
-  
+      this.player.setVelocityY(-100);
+
+       this.player.anims.play("up");
+
     } else if (this.cursors.down.isDown) {
-      this.player.setVelocityY(300);
-   
+      this.player.setVelocityY(100);
+       this.player.anims.play("down");
+
     } else {
       this.player.setVelocityY(0);
 
@@ -318,10 +382,55 @@ export default class nivel1 extends Phaser.Scene {
       this.cameras.main.worldView.y + 8
     );
 
+    this.enemy.children.iterate((enemy) => {
+    if (enemy.active) {
+      if (enemy.name === "1") {
+        // Comprobar si el enemy está activo
+       
+         enemy.anims.play("Eup", true);
+          // Lógica de movimiento del enemy
+          if (enemy.body.blocked.up) {
+            enemy.setVelocityY(50); // Mover hacia abajo
+            
+          }
+          if (enemy.body.blocked.down) {
+            enemy.setVelocityY(-50); // Mover hacia arriba
+          }
+      }
+
+            if (enemy.name === "2") {
+        // Comprobar si el enemy está activo
+      enemy.anims.play("Eleft", true);
+          // Lógica de movimiento del enemy
+          if (enemy.body.blocked.left) {
+            enemy.setVelocityX(50); // Mover hacia la derecha
+
+          }
+          if (enemy.body.blocked.right) {
+            enemy.setVelocityX(-50); // Mover hacia la izquierda
+
+          }
+      }
+    }
+
+    });
 
 
   }
+hitEnemy(player, enemy) {
+  enemy.disableBody(true, true);
+  if (this.score >= 20) {
+    this.score -= 20;
+  }else {
+    this.score = 0; // Evitar que la puntuación sea negativa
+  }
+  this.scoreText.setText(`Score:  ${this.score}`);
+  player.setTint(0xff0000); // Cambiar el color del jugador para indicar daño
+  this.time.delayedCall(500, () => {
+  player.clearTint(); // Limpiar el tinte después de un tiempo
+  });
 
+}
   collectStar(player, star) {
     star.disableBody(true, true);
 
@@ -330,7 +439,7 @@ export default class nivel1 extends Phaser.Scene {
     this.score += 10;
     this.starsCollected++;
     this.scoreText.setText(`Score:  ${this.score}`);
-    star.total++;
+    
 
     // Si quieres activar algo al llegar a 5 estrellas:
   if (this.starsCollected === 5) {
