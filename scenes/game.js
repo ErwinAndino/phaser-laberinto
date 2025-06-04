@@ -59,30 +59,24 @@ export default class Game extends Phaser.Scene {
     this.player.setCollideWorldBounds(false);
     this.player.setScale(0.5, 0.5); // Adjust the scale of the player
 
-    this.anims.create({
-      key: "left",
-      frames: this.anims.generateFrameNumbers("characters", { start: 21, end: 22 }),
-      frameRate: 10,
-      repeat: -1,
-    });
-
-    this.anims.create({
-      key: "up",
-      frames: [{ key: "characters", frame: 23 }],
+        this.anims.create({
+      key: "stop",
+      frames: [{ key: "characters", frame: 21 }],
       frameRate: 20,
     });
 
+    //   this.anims.create({
+    //   key: "rest",
+    //   frames: [{ key: "characters", frame: 23, frame: 21, frame: 22, frame: 21, frame: 23 }],
+    //   frameRate: 20,
+    //   repeat: -1,
+    // });
+
     this.anims.create({
-      key: "right",
+      key: "move",
       frames: this.anims.generateFrameNumbers("characters", { start: 21, end: 22 }),
       frameRate: 10,
       repeat: -1,
-    });
-
-        this.anims.create({
-      key: "down",
-      frames: this.anims.generateFrameNumbers("characters", { start: 21, end: 22 }),
-      frameRate: 10,
     });
     // anims enemy
      this.anims.create({
@@ -118,6 +112,7 @@ export default class Game extends Phaser.Scene {
           // add star to scene
           // console.log("estrella agregada: ", x, y);
           const enemy = this.enemy.create(x, y, "characters", 24);
+          enemy.setBounce(1)
           enemy.name = name; // Set the name of the enemy for later use
           enemy.setScale(0.5);
           if (name === "1") {
@@ -337,32 +332,37 @@ export default class Game extends Phaser.Scene {
     if (this.cursors.left.isDown) {
       this.player.setVelocityX(-100);
 
-      this.player.anims.play("left", true);
+     
     } else if (this.cursors.right.isDown) {
       this.player.setVelocityX(100);
 
-      this.player.anims.play("right", true);
+  
     } else {
       this.player.setVelocityX(0);
-
-      this.player.anims.play("down");
     }
 
     if (this.cursors.up.isDown) {
       this.player.setVelocityY(-100);
 
-       this.player.anims.play("up");
+       
 
     } else if (this.cursors.down.isDown) {
       this.player.setVelocityY(100);
-       this.player.anims.play("down");
+       
 
     } else {
       this.player.setVelocityY(0);
 
-
     }
-
+    if (this.cursors.right.isDown || this.cursors.left.isDown || 
+      this.cursors.up.isDown || this.cursors.down.isDown ) {
+      this.player.anims.play("move",true);
+    } else {
+      this.player.anims.play("stop",true);
+      // this.time.delayedCall(4000, () => { 
+      //     this.player.anims.play("rest",true);
+      //   });
+    }
     if (Phaser.Input.Keyboard.JustDown(this.keyR)) {
       console.log("Phaser.Input.Keyboard.JustDown(this.keyR)");
       this.scene.restart();
@@ -388,27 +388,14 @@ export default class Game extends Phaser.Scene {
        
          enemy.anims.play("Eup", true);
           // Lógica de movimiento del enemy
-          if (enemy.body.blocked.up) {
-            enemy.setVelocityY(50); // Mover hacia abajo
-            
-          }
-          if (enemy.body.blocked.down) {
-            enemy.setVelocityY(-50); // Mover hacia arriba
-          }
+        
       }
 
             if (enemy.name === "2") {
         // Comprobar si el enemy está activo
       enemy.anims.play("Eleft", true);
           // Lógica de movimiento del enemy
-          if (enemy.body.blocked.left) {
-            enemy.setVelocityX(50); // Mover hacia la derecha
-
-          }
-          if (enemy.body.blocked.right) {
-            enemy.setVelocityX(-50); // Mover hacia la izquierda
-
-          }
+        
       }
     }
 
